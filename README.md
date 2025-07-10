@@ -8,8 +8,6 @@
 ![JavaScript](https://img.shields.io/badge/Frontend-JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 
 
-
-
 A RESTful API built with **Spring Boot** to analyze system log files (`kpsaOrder.log`) and extract structured information related to **Product Orders (PO)**, **Work Orders (WO)**, **Service Orders (SO)**, and associated **Request IDs**. It also detects rollback events and provides a full overview of the request lifecycle.
 
 ---
@@ -18,11 +16,11 @@ A RESTful API built with **Spring Boot** to analyze system log files (`kpsaOrder
 
 - Analyze logs by a specific `Request ID`.
 - Extract:
-  - **Calling Account** and **Operation Type**
-  - Details of **Service Orders (SO)** with IDs, names, statuses (STARTED/ENDED), and execution time.
-  - Details of **Product Orders (PO)** and **Work Orders (WO)**, including their instances and statuses.
-  - **Rollback detection** in the request lifecycle.
-- REST API returns a structured JSON response.
+- **Calling Account** and **Operation Type**
+- Details of **Service Orders (SO)** with IDs, names, statuses (STARTED/ENDED), and execution time.
+- Details of **Product Orders (PO)** and **Work Orders (WO)**, including their instances and statuses.
+- **Rollback detection** in the request lifecycle.
+- 🌐 **RESTful API** + simple **web interface** for easy testing
 - Console logs provide additional trace information for debugging.
 - CORS configuration included for frontend communication.
 
@@ -34,6 +32,8 @@ A RESTful API built with **Spring Boot** to analyze system log files (`kpsaOrder
 - **Spring Boot 3.x**
 - **Maven**
 - **Regex (Regular Expressions)** for parsing raw logs
+- **HTML + JavaScript for frontend**
+- **CORS enabled for frontend/backend integration**
 
 ---
 
@@ -77,13 +77,15 @@ The API will be available at [http://localhost:8080](http://localhost:8080)
 
 ## 🌐 API Usage
 
-### Endpoint
+## 🧪 REST API Endpoints
 
-```
-GET /api/log-analyzer/{requestId}
-```
+| Method | Endpoint                               | Description                                |
+| ------ | -------------------------------------- | ------------------------------------------ |
+| `POST` | `/api/log-analyzer/analyze-default`    | Analyze default log file (`kpsaOrder.log`) |
+| `POST` | `/api/log-analyzer/upload-and-analyze` | Upload and analyze a custom log file       |
+| `GET`  | `/api/log-analyzer/test` *(optional)*  | Simple test endpoint to verify API         |
 
-Replace `{requestId}` with a valid ID from the log file.
+---
 
 ### Example
 
@@ -91,26 +93,6 @@ Replace `{requestId}` with a valid ID from the log file.
 GET http://localhost:8080/api/log-analyzer/1808027630
 ```
 
-### Example JSON Response
-
-```json
-{
-  "requestId": "1808027630",
-  "accountCaller": "YourAccount",
-  "operationType": "YourOperation",
-  "rollbackDetected": false,
-  "serviceOrders": [
-    {
-      "id": "1808027635",
-      "name": "GSM:ContractDeactivation",
-      "status": "Ended",
-      "executionTimeMillis": 1234
-    }
-  ],
-  "productOrders": [ /* ... */ ],
-  "workOrders": { /* ... */ }
-}
-```
 
 ---
 
@@ -135,19 +117,31 @@ src/main/resources/
 ```
 
 ---
+
+## 🌐 Web Interface (`index.html`)
+
+A minimal web interface is included in `src/main/resources/static/index.html`.
+It allows users to:
+
+1. Enter a **Request ID**
+2. Analyze the **default log file**
+3. Upload and analyze a **custom log file**
+
 ---
-
-## 📸 Example Response 
-<img width="1503" alt="Screenshot 2025-07-10 at 09 37 06" src="https://github.com/user-attachments/assets/9e6130b8-03b8-4d7f-a976-b3943b89f041" />
-<img width="1503" alt="Screenshot 2025-07-10 at 09 37 38" src="https://github.com/user-attachments/assets/c7a944a5-dad4-49c1-871e-af4be9b99a14" />
-
----
-
 ## 🌍 CORS Configuration
 
 The `WebConfig.java` class allows frontend apps (e.g. running on `http://localhost:3000`) to interact with the backend.
 
 Update `allowedOrigins` in `WebConfig` based on your frontend environment if needed.
+
+---
+## 📸 Example Response 
+<img width="1503" height="861" alt="Screenshot 2025-07-10 at 12 53 29" src="https://github.com/user-attachments/assets/69d66158-3f4d-4a29-911d-7f5eb78a3d95" />
+<img width="1503" height="861" alt="Screenshot 2025-07-10 at 12 53 45" src="https://github.com/user-attachments/assets/374d43c2-dc4e-4d58-80f5-0547e53e2893" />
+<img width="1503" height="861" alt="Screenshot 2025-07-10 at 12 53 55" src="https://github.com/user-attachments/assets/d5bd9beb-8f67-4a5c-8962-36e9f1b68ed1" />
+<img width="1503" height="861" alt="Screenshot 2025-07-10 at 12 54 08" src="https://github.com/user-attachments/assets/89d61298-9322-4eaf-8ca7-1ca60f77163f" />
+<img width="1503" height="861" alt="Screenshot 2025-07-10 at 12 54 15" src="https://github.com/user-attachments/assets/4ff1cc5c-39ed-4540-a00c-1f05040e32ca" />
+<img width="1503" height="861" alt="Screenshot 2025-07-10 at 12 54 23" src="https://github.com/user-attachments/assets/a35b8dc9-c6de-4f4c-bd88-efaecc3d29bf" />
 
 ---
 
@@ -160,13 +154,14 @@ Feel free to open issues or submit pull requests with enhancements or bug fixes.
 
 ## 📄 License
 
-This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+This project is licensed under the 
+[MIT License](https://opensource.org/licenses/MIT).
+
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)
 
 
 ```
 
----
 
 
 
