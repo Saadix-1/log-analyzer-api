@@ -32,8 +32,6 @@
         }
 
         try {
-            // L'URL de votre API Spring Boot
-            // Remplacez 'localhost:8080' par l'adresse IP/nom de domaine et le port de votre serveur déployé
             const apiUrl = `http://localhost:8080/api/log-analyzer/${requestId}`;
 
             const response = await fetch(apiUrl);
