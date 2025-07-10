@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyseur de Logs</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        label, input, button { display: block; margin-bottom: 10px; }
+        pre { background-color: #eee; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+<h1>Analyseur de Logs par Request ID</h1>
+
+<label for="requestIdInput">Entrez la Request ID :</label>
+<input type="text" id="requestIdInput" placeholder="Ex: ABC-123">
+<button id="analyzeButton">Analyser le Log</button>
+
+<h2>Résultats :</h2>
+<pre id="results"></pre>
+
+<script>
+    document.getElementById('analyzeButton').addEventListener('click', async () => {
+        const requestId = document.getElementById('requestIdInput').value.trim();
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.textContent = 'Analyse en cours...';
+
+        if (!requestId) {
+            resultsDiv.textContent = 'Veuillez entrer une Request ID.';
+            return;
+        }
+
+        try {
+            // L'URL de votre API Spring Boot
+            // Remplacez 'localhost:8080' par l'adresse IP/nom de domaine et le port de votre serveur déployé
+            const apiUrl = `http://localhost:8080/api/log-analyzer/${requestId}`;
+
+            const response = await fetch(apiUrl);
+
+            if (!response.ok) {
+                // Si la réponse n'est pas OK (ex: 404, 500), lisez l'erreur du serveur
+                const errorData = await response.json();
+                resultsDiv.textContent = `Erreur de l'API (${response.status}): ${JSON.stringify(errorData, null, 2)}`;
+                return;
+            }
+
+            const data = await response.json();
+            resultsDiv.textContent = JSON.stringify(data, null, 2); // Affiche le JSON formaté
+        } catch (error) {
+            resultsDiv.textContent = `Erreur lors de la communication avec l'API: ${error.message}`;
+            console.error('Erreur API:', error);
+        }
+    });
+</script>
+</body>
+</html>

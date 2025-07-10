@@ -1,0 +1,16 @@
+# ============ Fichiers compilés ============
+/target/
+*.class
+*.jar
+*.war
+*.log
+
+# ============ IDEs & config ============
+.idea/
+*.iml
+
+# ============ OS ============
+.DS_Store
+
+# ============ Archives ============
+*.zip
