@@ -141,12 +141,9 @@ Update `allowedOrigins` in `WebConfig` based on your frontend environment if nee
 
 ---
 ## 📸 Example Response 
-<img width="1503" height="861" alt="Screenshot 2025-07-10 at 12 53 29" src="https://github.com/user-attachments/assets/69d66158-3f4d-4a29-911d-7f5eb78a3d95" />
-<img width="1503" height="861" alt="Screenshot 2025-07-10 at 12 53 45" src="https://github.com/user-attachments/assets/374d43c2-dc4e-4d58-80f5-0547e53e2893" />
-<img width="1503" height="861" alt="Screenshot 2025-07-10 at 12 53 55" src="https://github.com/user-attachments/assets/d5bd9beb-8f67-4a5c-8962-36e9f1b68ed1" />
-<img width="1503" height="861" alt="Screenshot 2025-07-10 at 12 54 08" src="https://github.com/user-attachments/assets/89d61298-9322-4eaf-8ca7-1ca60f77163f" />
-<img width="1503" height="861" alt="Screenshot 2025-07-10 at 12 54 15" src="https://github.com/user-attachments/assets/4ff1cc5c-39ed-4540-a00c-1f05040e32ca" />
-<img width="1503" height="861" alt="Screenshot 2025-07-10 at 12 54 23" src="https://github.com/user-attachments/assets/a35b8dc9-c6de-4f4c-bd88-efaecc3d29bf" />
+<img width="1506" height="846" alt="Screenshot 2025-07-16 at 15 13 48" src="https://github.com/user-attachments/assets/fc25b3db-6cf9-4089-9cb2-a0a835490163" />
+<img width="1506" height="846" alt="Screenshot 2025-07-16 at 15 13 57" src="https://github.com/user-attachments/assets/a36fc845-711c-428c-b5e3-077300e4d517" />
+<img width="1506" height="846" alt="Screenshot 2025-07-16 at 15 14 01" src="https://github.com/user-attachments/assets/165aad49-521f-4c59-bc74-e40b2c1b8a61" />
 
 ---
 
