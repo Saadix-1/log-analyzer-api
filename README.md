@@ -141,7 +141,7 @@ Update `allowedOrigins` in `WebConfig` based on your frontend environment if nee
 
 ---
 ## 📸 Example Response 
-<img width="1506" height="846" alt="Screenshot 2025-07-16 at 15 13 48" src="https://github.com/user-attachments/assets/fc25b3db-6cf9-4089-9cb2-a0a835490163" />
+<img width="1506" height="865" alt="Screenshot 2025-07-16 at 16 05 50" src="https://github.com/user-attachments/assets/52a0da8c-2b0c-424c-b192-39995da83eec" />
 <img width="1506" height="846" alt="Screenshot 2025-07-16 at 15 13 57" src="https://github.com/user-attachments/assets/a36fc845-711c-428c-b5e3-077300e4d517" />
 <img width="1506" height="846" alt="Screenshot 2025-07-16 at 15 14 01" src="https://github.com/user-attachments/assets/165aad49-521f-4c59-bc74-e40b2c1b8a61" />
 
