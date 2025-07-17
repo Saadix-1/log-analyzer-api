@@ -11,11 +11,6 @@
 A RESTful API built with **Spring Boot** to analyze system log files (`kpsaOrder.log`) and extract structured information related to **Product Orders (PO)**, **Work Orders (WO)**, **Service Orders (SO)**, and associated **Request IDs**. It also detects rollback events and provides a full overview of the request lifecycle.
 
 
-(As part of my internship at Atos)
-<img width="130" height="125" alt="image" src="https://github.com/user-attachments/assets/f4046b47-09db-4650-b2b5-da9a94f34968" />
-
-
----
 
 ## ✨ Features
 
