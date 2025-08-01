@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyseur de Log </title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        h1, h2 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .section-title {
+            color: #34495e;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="file"],
+        input[type="text"],
+        button {
+            padding: 12px 18px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 1em;
+            width: calc(100% - 24px); /* Full width minus padding */
+            box-sizing: border-box; /* Include padding in width */
+        }
+        input[type="file"] {
+            background-color: #eef;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease;
+            width: auto; /* Reset width for button */
+            display: inline-block;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #response-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            display: none; /* Hidden by default */
+        }
+        #response-message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+        #response-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+        pre {
+            background-color: #eee;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            white-space: pre-wrap; /* Wrap long lines */
+            word-wrap: break-word; /* Break words for long lines */
+            max-height: 400px; /* Limit height for long JSON */
+            margin-top: 15px;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            color: #333;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .no-data {
+            color: #777;
+            font-style: italic;
+            text-align: center;
+            padding: 15px;
+            border: 1px dashed #ccc;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: none; /* Hidden by default */
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .rollback-section {
+            background-color: #ffe0e0; /* Light red background for rollback */
+            border-left: 5px solid #ff6347; /* Red border */
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        .rollback-section h3 {
+            color: #ff6347;
+            margin-top: 0;
+        }
+        .rollback-section ul {
+            list-style: disc;
+            margin-left: 20px;
+            padding: 0;
+        }
+        .rollback-section li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Analyseur de Log</h1>
+
+    <div class="section-title">Télécharger et Analyser le Fichier Log</div>
+    <form id="log-upload-form">
+        <div class="form-group">
+            <label for="file">Sélectionner un fichier log :</label>
+            <input type="file" id="file" name="file" accept=".log,.txt" required>
+        </div>
+        <div class="form-group">
+            <label for="requestId">ID de la Requête  :</label>
+            <input type="text" id="requestId" name="requestId" placeholder="Entrez l'ID de la requête à filtrer" required>
+        </div>
+        <button type="submit">Uploader et Analyser le Log</button>
+        <div class="loader" id="loader"></div>
+    </form>
+
+    <div id="response-message"></div>
+
+
+    <div class="section-title">Détails Structurés de l'Analyse</div>
+
+    <div id="general-info">
+        <h2>Informations Générales</h2>
+        <p><strong>Request ID:</strong> <span id="display-requestId">N/A</span></p>
+        <p><strong>Account Caller:</strong> <span id="display-accountCaller">N/A</span></p>
+        <p><strong>Operation Type:</strong> <span id="display-operationType">N/A</span></p>
+    </div>
+
+    <div id="service-orders">
+        <h2>Service Orders (SOs)</h2>
+        <table id="so-table">
+            <thead>
+            <tr>
+                <th>ID SO</th>
+                <th>Nom SO</th>
+                <th>Statut</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <div class="no-data" id="no-so-data" style="display: none;">Aucun Service Order trouvé.</div>
+    </div>
+
+    <div id="product-orders">
+        <h2>Product Orders (POs) et Work Orders (WOs)</h2>
+        <div id="po-list">
+        </div>
+        <div class="no-data" id="no-po-data" style="display: none;">Aucun Product Order trouvé.</div>
+    </div>
+
+    <div id="rollback-section" class="rollback-section" style="display: none;">
+        <h3>Rollback Détecté !</h3>
+        <p>Des actions de rollback ont été identifiées dans le log :</p>
+        <ul id="rollback-details-list">
+        </ul>
+    </div>
+
+</div>
+
+<script>
+    document.getElementById('log-upload-form').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const fileInput = document.getElementById('file');
+        const requestIdInput = document.getElementById('requestId');
+        const responseMessageDiv = document.getElementById('response-message');
+        const jsonResponsePre = document.getElementById('json-response');
+        const loader = document.getElementById('loader');
+
+        responseMessageDiv.style.display = 'none';
+        jsonResponsePre.textContent = 'Analyse en cours...';
+        resetAnalysisDisplay();
+        loader.style.display = 'inline-block';
+
+        const file = fileInput.files[0];
+        const requestId = requestIdInput.value;
+
+        if (!file || !requestId) {
+            responseMessageDiv.textContent = 'Veuillez sélectionner un fichier et entrer un ID de requête.';
+            responseMessageDiv.className = 'error';
+            responseMessageDiv.style.display = 'block';
+            loader.style.display = 'none';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('requestId', requestId);
+
+        try {
+            const response = await fetch('/api/log-analyzer/upload-and-analyze', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            jsonResponsePre.textContent = JSON.stringify(data, null, 2);
+
+            if (data.status === 'success') {
+                responseMessageDiv.textContent = data.message;
+                responseMessageDiv.className = 'success';
+                displayAnalysisResults(data.analysisResult);
+            } else {
+                responseMessageDiv.textContent = data.message || 'Une erreur inconnue est survenue.';
+                responseMessageDiv.className = 'error';
+            }
+
+        } catch (error) {
+            console.error('Erreur lors de l\'upload ou de l\'analyse :', error);
+            responseMessageDiv.textContent = 'Erreur lors de la connexion au serveur ou de l\'analyse : ' + error.message;
+            responseMessageDiv.className = 'error';
+        } finally {
+            responseMessageDiv.style.display = 'block';
+            loader.style.display = 'none';
+        }
+    });
+
+    function resetAnalysisDisplay() {
+        // Réinitialiser les informations générales
+        document.getElementById('display-requestId').textContent = 'N/A';
+        document.getElementById('display-accountCaller').textContent = 'N/A';
+        document.getElementById('display-operationType').textContent = 'N/A';
+
+        document.getElementById('no-so-data').style.display = 'none';
+        document.querySelector('#so-table tbody').innerHTML = '';
+
+        document.getElementById('no-po-data').style.display = 'none';
+        document.getElementById('po-list').innerHTML = '';
+
+        document.getElementById('rollback-section').style.display = 'none';
+        document.getElementById('rollback-details-list').innerHTML = '';
+    }
+
+    function displayAnalysisResults(result) {
+        // Afficher les informations générales
+        document.getElementById('display-requestId').textContent = result.requestId || 'Non trouvé';
+        document.getElementById('display-accountCaller').textContent = result.accountCaller || 'Non trouvé';
+        document.getElementById('display-operationType').textContent = result.operationType || 'Non trouvé';
+
+        // Afficher les Service Orders
+        const soTableBody = document.querySelector('#so-table tbody');
+        soTableBody.innerHTML = ''; // Vider les entrées précédentes
+        if (result.serviceOrders && result.serviceOrders.length > 0) {
+            result.serviceOrders.forEach(so => {
+                const row = soTableBody.insertRow();
+                row.insertCell().textContent = so.id || 'N/A';
+                row.insertCell().textContent = so.name || 'Nom SO inconnu';
+                row.insertCell().textContent = so.status || 'Statut inconnu';
+            });
+            document.getElementById('no-so-data').style.display = 'none';
+        } else {
+            document.getElementById('no-so-data').style.display = 'block';
+        }
+
+        // Afficher les Product Orders et leurs Work Orders
+        const poListDiv = document.getElementById('po-list');
+        poListDiv.innerHTML = ''; // Vider les entrées précédentes
+        if (result.productOrders && result.productOrders.length > 0) {
+            result.productOrders.forEach(po => {
+                const poDiv = document.createElement('div');
+                poDiv.className = 'product-order-item';
+                poDiv.innerHTML = `
+                        <h3>Product Order ID: ${po.id || 'N/A'}</h3>
+                        <p><strong>Name:</strong> ${po.name || 'Nom PO inconnu'}</p>
+                        <p><strong>Status:</strong> ${po.status || 'Statut inconnu'}</p>
+                        <h4>Work Orders associés:</h4>
+                        <table class="work-order-table">
+                            <thead>
+                                <tr>
+                                    <th>ID WO</th>
+                                    <th>Nom WO</th>
+                                    <th>Statut</th>
+                                    <th>Timestamp</th>
+                                    <th>Level</th>
+                                    <th>Instance</th>
+                                    <th>Temps (µs)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                </tbody>
+                        </table>
+                    `;
+                const woTableBody = poDiv.querySelector('.work-order-table tbody');
+                if (po.workOrders && po.workOrders.length > 0) {
+                    po.workOrders.forEach(wo => {
+                        const row = woTableBody.insertRow();
+                        row.insertCell().textContent = wo.id || 'N/A';
+                        row.insertCell().textContent = wo.name || 'Nom WO inconnu';
+                        row.insertCell().textContent = wo.status || 'Statut inconnu';
+                        row.insertCell().textContent = wo.rawLogTimestamp || 'N/A';
+                        row.insertCell().textContent = wo.logLevel || 'N/A';
+                        row.insertCell().textContent = wo.instanceName || 'N/A';
+                        row.insertCell().textContent = wo.processingTimeMicros != null ? wo.processingTimeMicros.toLocaleString() : 'N/A';
+                    });
+                } else {
+                    const row = woTableBody.insertRow();
+                    const cell = row.insertCell();
+                    cell.colSpan = 7; // Span across all columns
+                    cell.textContent = 'Aucun Work Order trouvé pour ce Product Order.';
+                    cell.style.fontStyle = 'italic';
+                    cell.style.textAlign = 'center';
+                }
+                poListDiv.appendChild(poDiv);
+            });
+            document.getElementById('no-po-data').style.display = 'none';
+        } else {
+            document.getElementById('no-po-data').style.display = 'block';
+        }
+
+        // Afficher les détails de rollback si détecté
+        const rollbackSection = document.getElementById('rollback-section');
+        const rollbackDetailsList = document.getElementById('rollback-details-list');
+        rollbackDetailsList.innerHTML = ''; // Vider les entrées précédentes
+
+        if (result.rollbackDetected && result.rollbackDetails && result.rollbackDetails.length > 0) {
+            result.rollbackDetails.forEach(detail => {
+                const li = document.createElement('li');
+                li.textContent = detail;
+                rollbackDetailsList.appendChild(li);
+            });
+            rollbackSection.style.display = 'block';
+        } else {
+            rollbackSection.style.display = 'none';
+        }
+    }
+</script>
+</body>
+</html>

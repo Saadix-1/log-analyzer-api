@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyseur de Logs KPSA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            margin: 20px auto;
+        }
+        h1, h2 {
+            color: #0056b3;
+        }
+        label, input, button {
+            display: block;
+            margin-bottom: 10px;
+        }
+        input[type="text"], input[type="file"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background-color: #e9e9e9;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .result-section {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        .order-details {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .order-details h3 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        .order-details p {
+            margin: 5px 0;
+        }
+        .nested-list {
+            margin-left: 20px;
+            border-left: 2px solid #e0e0e0;
+            padding-left: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Analyseur de Logs KPSA</h1>
+
+    <div class="input-section">
+        <label for="requestId">Entrez l'ID de la Requête :</label>
+        <input type="text" id="requestId" value="1808027629">
+
+        <button onclick="analyzeDefaultLog()">Analyser le Log </button>
+
+        <input type="file" id="logFile" accept=".log, .txt">
+    </div>
+
+    <div class="result-section" id="results">
+        <h2>Résultats de l'Analyse :</h2>
+        <pre id="jsonOutput"></pre>
+
+        <h3>Détails Structurés:</h3>
+        <div id="structuredDetails">
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_BASE_URL = 'http://localhost:8080/api/log-analyzer';
+
+    async function analyzeDefaultLog() {
+        const requestId = document.getElementById('requestId').value;
+        if (!requestId) {
+            alert('Veuillez entrer un ID de Requête.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/analyze?requestId=${requestId}`);
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+            const data = await response.json();
+            displayResults(data);
+        } catch (error) {
+            console.error('Erreur lors de l\'analyse du log par défaut:', error);
+            document.getElementById('jsonOutput').textContent = 'Erreur: ' + error.message;
+            document.getElementById('structuredDetails').innerHTML = '';
+        }
+    }
+
+    async function uploadAndAnalyzeLog() {
+        const fileInput = document.getElementById('logFile');
+        const file = fileInput.files[0];
+        const requestId = document.getElementById('requestId').value;
+
+        if (!file) {
+            alert('Veuillez sélectionner un fichier log à uploader.');
+            return;
+        }
+        if (!requestId) {
+            alert('Veuillez entrer un ID de Requête.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('requestId', requestId);
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/upload-and-analyze`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erreur HTTP: ${response.status}`);
+            }
+            const data = await response.json();
+            displayResults(data);
+        } catch (error) {
+            console.error('Erreur lors de l\'upload et l\'analyse du log:', error);
+            document.getElementById('jsonOutput').textContent = 'Erreur: ' + error.message;
+            document.getElementById('structuredDetails').innerHTML = '';
+        }
+    }
+
+    // --- NOUVELLE FONCTION POUR NETTOYER LE NOM DU WORK ORDER ---
+    function cleanWorkOrderName(name) {
+        if (!name) {
+            return 'N/A';
+        }
+        // Exemple: Puk:_./conf/POF_GET_PUK.xml_POF_GET_PUK_GET_PUK_0
+        // On veut obtenir "Puk" ou "GET_PUK"
+        // Essayons de récupérer la partie avant le premier ":"
+        let parts = name.split(':');
+        if (parts.length > 0 && parts[0].trim() !== '') {
+            // Si c'est "BSCSWS:retrieveCustomerPGW:..." -> "BSCSWS:retrieveCustomerPGW"
+            // Si c'est "EricssonInAIRType:GetAccountDetails:..." -> "EricssonInAIRType:GetAccountDetails"
+            // On peut aussi chercher le dernier segment s'il est plus significatif
+            let lastSlashIndex = name.lastIndexOf('/');
+            let lastXmlSuffixIndex = name.lastIndexOf('.xml');
+            if (lastSlashIndex !== -1 && lastXmlSuffixIndex !== -1 && lastXmlSuffixIndex > lastSlashIndex) {
+                // C'est probablement un chemin de fichier, essayons d'extraire la partie après le dernier / et avant .xml
+                let cleaned = name.substring(lastSlashIndex + 1, lastXmlSuffixIndex);
+                // On peut aussi enlever le "POF_" si présent au début
+                if (cleaned.startsWith('POF_')) {
+                    cleaned = cleaned.substring(4);
+                }
+                // Et remplacer les underscores par des espaces ou simplement s'en tenir aux mots
+                return cleaned.replace(/_/g, ' '); // Remplace les underscores par des espaces
+            }
+            // Si le format n'est pas un chemin de fichier XML, utilisons la première partie avant le premier ':'
+            let firstPart = parts[0].trim();
+            // Si la première partie est vide, prenons la seconde ou une partie plus loin
+            if (firstPart === '' && parts.length > 1) {
+                firstPart = parts[1].trim(); // Par exemple, ":GetAccountDetails" pourrait donner "GetAccountDetails"
+            }
+
+            // Pour des noms comme "GSM:ChangeRatePlan", on voudrait garder "GSM:ChangeRatePlan" ou "ChangeRatePlan"
+            if (firstPart.includes('BSCSWS') || firstPart.includes('EricssonInAIRType') || firstPart.includes('EricssonBCSType')) {
+                // Pour ces types, on prend les deux premières parties si elles existent
+                if (parts.length >= 2) {
+                    return `${parts[0].trim()}:${parts[1].trim()}`;
+                }
+            }
+
+            return firstPart; // Par défaut, la première partie avant le premier deux-points
+        }
+
+        // Fallback si aucun pattern n'est trouvé
+        return name.split(':')[0].trim() || name.split('_').pop().trim() || name; // Tente de récupérer la première partie avant ':', ou la dernière après '_', ou le nom entier
+    }
+
+    function displayResults(data) {
+        document.getElementById('jsonOutput').textContent = JSON.stringify(data, null, 2);
+
+        const detailsDiv = document.getElementById('structuredDetails');
+        detailsDiv.innerHTML = ''; // Clear previous results
+
+        // Helper function to format microseconds
+        function formatMicros(micros) {
+            if (micros !== undefined && micros !== null) {
+                return `${micros} µs`;
+            }
+            return 'N/A'; // Or "" if you prefer empty
+        }
+
+        // General Info
+        let generalInfoHtml = `
+                <div class="order-details">
+                    <h3>Informations Générales</h3>
+                    <p><strong>Request ID:</strong> ${data.requestId}</p>
+                    <p><strong>Compte de l'Appelant:</strong> ${data.accountCaller || 'Non trouvé'}</p>
+                    <p><strong>Type d'Opération:</strong> ${data.operationType || 'Non trouvé'}</p>
+                    <p><strong>Rollback Détecté:</strong> ${data.rollbackDetails && data.rollbackDetails.length > 0 ? 'Oui' : 'Non'}</p>
+            `;
+        if (data.rollbackDetails && data.rollbackDetails.length > 0) {
+            generalInfoHtml += `<p><strong>Détails du Rollback:</strong></p><ul class="nested-list">`;
+            data.rollbackDetails.forEach(detail => {
+                generalInfoHtml += `<li>${detail}</li>`;
+            });
+            generalInfoHtml += `</ul>`;
+        }
+        generalInfoHtml += `</div>`;
+        detailsDiv.innerHTML += generalInfoHtml;
+
+
+        // Service Orders (simplified display)
+        if (data.serviceOrders && data.serviceOrders.length > 0) {
+            let soHtml = `<h3>Service Orders (${data.serviceOrders.length})</h3>`;
+            data.serviceOrders.forEach(so => {
+                soHtml += `
+                        <div class="order-details">
+                            <p><strong>ID SO:</strong> ${so.id}</p>
+                            <p><strong>Nom:</strong> ${so.name || 'N/A'}</p>
+                            <p><strong>Statut:</strong> ${so.status}</p>
+                        </div>
+                    `;
+            });
+            detailsDiv.innerHTML += soHtml;
+        } else {
+            detailsDiv.innerHTML += `<h3>Aucun Service Order trouvé.</h3>`;
+        }
+
+        // Product Orders (simplified display)
+        if (data.productOrders && data.productOrders.length > 0) {
+            let poHtml = `<h3>Product Orders (${data.productOrders.length})</h3>`;
+            data.productOrders.forEach(po => {
+                poHtml += `
+                        <div class="order-details">
+                            <p><strong>ID PO:</strong> ${po.id}</p>
+                            <p><strong>Nom:</strong> ${po.name || 'N/A'}</p>
+                            <p><strong>Statut:</strong> ${po.status}</p>
+                    `;
+                if (po.workOrders && po.workOrders.length > 0) {
+                    poHtml += `<p><strong>Work Orders (${po.workOrders.length}):</strong></p><ul class="nested-list">`;
+                    po.workOrders.forEach(wo => {
+                        // --- UTILISATION DE LA NOUVELLE FONCTION cleanWorkOrderName ---
+                        const cleanedName = cleanWorkOrderName(wo.name);
+                        poHtml += `
+                                <li>
+                                    <strong>ID WO:</strong> ${wo.id}<br>
+                                    <strong>Nom:</strong> ${cleanedName}<br>
+                                    <strong>Statut:</strong> ${wo.status}<br>
+                                    <strong>Timestamp Log:</strong> ${wo.rawLogTimestamp || 'N/A'} | <strong>Niveau Log:</strong> ${wo.logLevel || 'N/A'}<br>
+                                    <strong>Nom Instance:</strong> ${wo.instanceName || 'N/A'}<br>
+                                    <strong>Durée Traitement Log:</strong> ${formatMicros(wo.processingTimeMicros)}
+                                </li>
+                            `;
+                    });
+                    poHtml += `</ul>`;
+                } else {
+                    poHtml += `<p>Aucun Work Order pour ce PO.</p>`;
+                }
+                poHtml += `</div>`;
+            });
+            detailsDiv.innerHTML += poHtml;
+        } else {
+            detailsDiv.innerHTML += `<h3>Aucun Product Order trouvé.</h3>`;
+        }
+    }
+</script>
+</body>
+</html>
+

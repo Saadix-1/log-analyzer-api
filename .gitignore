@@ -1,0 +1,44 @@
+
+# ============ Fichiers compilés ============
+/target/
+*.class
+*.jar
+*.war
+*.log
+
+# ============ IDEs & config ============
+.idea/
+*.iml
+
+# ============ OS ============
+.DS_Store
+
+# ============ Archives ============
+*.zip
+=======
+>>>>>>> 808e03cf19db02708367e24c25e0af0a5fff04af
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+replay_pid*
+replay_pid*
